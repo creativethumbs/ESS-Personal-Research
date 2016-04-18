@@ -60,7 +60,7 @@ int LoopNote;
 int LoopDuration;
 
 boolean playingNote = false;
-int noteStartTime; 
+int noteStartTime;
 
 int Loops2[45][2] = { {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100},
   {KE1, 125}, {KA1, 125}, {KC2, 125}, {KE2, 125},
@@ -108,36 +108,21 @@ int Loops [6][45][2] = {
 };
 
 void setup() {
-
   for (int i = 2; i <= 13; i++) {
     pinMode(i, OUTPUT);
   }
-  pinMode(32, OUTPUT);
-  pinMode(34, OUTPUT);
-  pinMode(36, OUTPUT);
-  pinMode(38, OUTPUT);
-  pinMode(40, OUTPUT);
-  pinMode(42, OUTPUT);
-  pinMode(44, OUTPUT);
-  pinMode(46, OUTPUT);
-
-  pinMode(24, OUTPUT);
-  pinMode(26, OUTPUT);
-  pinMode(28, OUTPUT);
-  pinMode(30, OUTPUT);
+  for (int i = 24; i <= 46; i += 2) {
+    pinMode(i, OUTPUT);
+  }
 
   Serial.begin(9600);
 
 }
 
 
-void loop() {
-  /* NON-SCHEDULER CODE*/
-
+void loop() { 
   startMillis = millis(); // Start of sample window
 
-  // collect data for 50 mS
-  //while (millis() - startMillis < sampleWindow) {
   sample = analogRead(0);
 
   Serial.println(sample);
@@ -163,8 +148,6 @@ void loop() {
     LoopPosition = 0;
   }
 
-  //}
-
   switch (CurrLoop) {
     case 0:
     case 1:
@@ -185,28 +168,15 @@ void loop() {
   }
 
   if (!playingNote) {
-
     LoopNote = Loops[CurrLoop][LoopPosition % LoopLength][0];
     LoopDuration = Loops[CurrLoop][LoopPosition % LoopLength][1];
 
-    // The track is 'muted' if the loop is playing a rest note
-    if (LoopNote == REST) {
-      //delay(LoopDuration);
-      noteStartTime = millis(); 
-    }
-
-    else if (LoopNote == E1_A1_C2_E2) {
+    if (LoopNote == E1_A1_C2_E2) {
       digitalWrite(KE1, HIGH);
       digitalWrite(KA1, HIGH);
       digitalWrite(KC2, HIGH);
       digitalWrite(KE2, HIGH);
 
-      delay(LoopDuration);
-
-      digitalWrite(KE1, LOW);
-      digitalWrite(KA1, LOW);
-      digitalWrite(KC2, LOW);
-      digitalWrite(KE2, LOW);
     }
 
     else if (LoopNote == F1_A1_C2_DS2) {
@@ -215,12 +185,6 @@ void loop() {
       digitalWrite(KC2, HIGH);
       digitalWrite(KDS2, HIGH);
 
-      delay(LoopDuration);
-
-      digitalWrite(KF1, LOW);
-      digitalWrite(KA1, LOW);
-      digitalWrite(KC2, LOW);
-      digitalWrite(KDS2, LOW);
     }
 
     else if (LoopNote == F1_A1_D2) {
@@ -228,85 +192,57 @@ void loop() {
       digitalWrite(KA1, HIGH);
       digitalWrite(KD2, HIGH);
 
-      delay(LoopDuration);
-
-      digitalWrite(KF1, LOW);
-      digitalWrite(KA1, LOW);
-      digitalWrite(KD2, LOW);
     }
 
     else if (LoopNote == D1_F1_C2) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KF1, HIGH);
       digitalWrite(KC2, HIGH);
-
-      delay(LoopDuration);
-
-      digitalWrite(KD1, LOW);
-      digitalWrite(KF1, LOW);
-      digitalWrite(KC2, LOW);
     }
 
     else if (LoopNote == D1_F1_A1) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KF1, HIGH);
       digitalWrite(KA1, HIGH);
-
-      delay(LoopDuration);
-
-      digitalWrite(KD1, LOW);
-      digitalWrite(KF1, LOW);
-      digitalWrite(KA1, LOW);
     }
 
     else if (LoopNote == D1_GS1_C2) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KFS1, HIGH);
       digitalWrite(KC2, HIGH);
-
-      delay(LoopDuration);
-
-      digitalWrite(KD1, LOW);
-      digitalWrite(KFS1, LOW);
-      digitalWrite(KC2, LOW);
     }
 
     else if (LoopNote == C1_E1_A1) {
       digitalWrite(KC1, HIGH);
       digitalWrite(KE1, HIGH);
       digitalWrite(KA1, HIGH);
-
-      delay(LoopDuration);
-
-      digitalWrite(KC1, LOW);
-      digitalWrite(KE1, LOW);
-      digitalWrite(KA1, LOW);
     }
 
     else if (LoopNote == A1_C2_E2_A2) {
       digitalWrite(KA1, HIGH);
-      delay(20);
       digitalWrite(KC2, HIGH);
-      delay(20);
       digitalWrite(KE2, HIGH);
-      delay(20);
       digitalWrite(KA2, HIGH);
-
-      delay(LoopDuration);
-
-      digitalWrite(KA1, LOW);
-      digitalWrite(KC2, LOW);
-      digitalWrite(KE2, LOW);
-      digitalWrite(KA2, LOW);
     }
 
     else {
       digitalWrite(LoopNote, HIGH);
-      delay(LoopDuration);
-      digitalWrite(LoopNote, LOW);
     }
 
+    noteStartTime = millis();
     LoopPosition++;
+    playingNote = true;
+  }
+
+  else if (playingNote && millis() - noteStartTime >= LoopDuration) {
+    playingNote = false;
+
+    for (int i = 2; i <= 13; i++) {
+      digitalWrite(i, LOW);
+    }
+    for (int i = 24; i <= 46; i += 2) {
+      digitalWrite(i, LOW);
+    }
   }
 
 }
