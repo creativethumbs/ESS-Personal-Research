@@ -24,23 +24,27 @@
 #define KFS2    20
 #define KG2     21
 #define KGS2    22
-#define KA2     23
-#define KAS2    24
-#define KB2     25
-#define KC3     26
+#define KA2     24
+#define KAS2    26
+#define KB2     28
+#define KC3     30
 
-#define E1_A1_C2_E2    27
-#define F1_A1_C2_DS2   28
-#define F1_A1_D2       29
-#define D1_F1_C2       30
-#define D1_F1_A1       31
-#define D1_FS1_C2      32
-#define C1_E1_A1       33
-#define A1_C2_E2_A2    34
+#define E1_A1_C2_E2    31
+#define F1_A1_C2_DS2   32
+#define F1_A1_D2       33
+#define D1_F1_C2       34
+#define D1_F1_A1       35
+#define D1_FS1_C2      36
+#define C1_E1_A1       37
+#define A1_C2_E2_A2    38
 #define REST    -1
 
+unsigned long startMillis;  
 const int sampleWindow = 50; // Sample window width in mS (50 mS = 20Hz)
 unsigned int sample;
+
+// marker for the last time a tip was received
+unsigned long lastTip;  
 
 int peaks = 0;
 
@@ -161,8 +165,6 @@ void PlayLoop(PTCB tcb) {
         digitalWrite(KF1, LOW); 
         digitalWrite(KC2, LOW);
       }
- 
-#define A1_C2_E2_A2    34
 
       else if (LoopNote == D1_F1_A1) {
         digitalWrite(KD1, HIGH);
@@ -207,10 +209,9 @@ void PlayLoop(PTCB tcb) {
         MOS_Delay(tcb, 20);
         digitalWrite(KE2, HIGH);
         MOS_Delay(tcb, 20);
-        digitalWrite(KA2, HIGH);
-        MOS_Delay(tcb, 20);
+        digitalWrite(KA2, HIGH); 
 
-        MOS_Delay(tcb, LoopDuration-(20*4));
+        MOS_Delay(tcb, LoopDuration-60);
 
         digitalWrite(KA1, LOW);
         digitalWrite(KC2, LOW); 
@@ -235,22 +236,28 @@ void MoneyListener(PTCB tcb) {
   MOS_Continue(tcb);
   while (1) {
 
-    unsigned long startMillis = millis(); // Start of sample window
-    unsigned int peakToPeak = 0;   // peak-to-peak level
-
-    unsigned int signalMax = 0;
-    unsigned int signalMin = 1024;
+    startMillis = millis(); // Start of sample window
 
     // collect data for 50 mS
     while (millis() - startMillis < sampleWindow) {
       sample = analogRead(0);
 
-
-      if (sample >= 678) {
+      if (CurrLoop < 5 && sample >= 678) {
+        lastTip = millis(); 
+        CurrLoop++; 
+        
         peaks++;
         Serial.print("peak! ");
         Serial.println(peaks);
         Serial.println(sample);
+
+        MOS_Delay(tcb, 5000);
+      }
+
+      // no tip for 30 seconds
+      else if(CurrLoop > 0 && sample < 678 && startMillis-lastTip > 30000) {
+        CurrLoop--; 
+        lastTip = millis(); 
       }
 
     }
