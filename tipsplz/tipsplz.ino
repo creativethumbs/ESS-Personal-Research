@@ -3,6 +3,7 @@
 #include <Wire.h> // Enable this line if using Arduino Uno, Mega, etc.
 #include <elapsedMillis.h>
 
+// notes
 #define KC1     2
 #define KCS1    3
 #define KD1     4
@@ -29,6 +30,7 @@
 #define KB2     28
 #define KC3     30
 
+// chords
 #define E1_A1_C2_E2    31
 #define F1_A1_C2_DS2   32
 #define F1_A1_D2       33
@@ -37,13 +39,14 @@
 #define D1_FS1_C2      36
 #define C1_E1_A1       37
 #define A1_C2_E2_A2    38
+
 #define REST    -1
 
 unsigned long startMillis;  
 const int sampleWindow = 50; // Sample window width in mS (50 mS = 20Hz)
 unsigned int sample;
 
-// marker for the last time a tip was received
+// time stamp for the last time a tip was received
 unsigned long lastTip;  
 
 int peaks = 0;
@@ -93,13 +96,22 @@ int Loops [6][42][2] = {
 };
 
 void setup() {
+  /*
+  for (int i = 2; i <= 22; i++) {
+    pinMode(i, OUTPUT);
+  }
+  pinMode(24, OUTPUT);
+  pinMode(26, OUTPUT);
+  pinMode(28, OUTPUT);
+  pinMode(30, OUTPUT);*/
+  
   Serial.begin(9600);
 }
 
 
 void loop() {
   MOS_Call(MoneyListener);
-  MOS_Call(PlayLoop);
+  //MOS_Call(PlayLoop);
 }
 
 void PlayLoop(PTCB tcb) {
@@ -240,8 +252,8 @@ void MoneyListener(PTCB tcb) {
 
     // collect data for 50 mS
     while (millis() - startMillis < sampleWindow) {
-      sample = analogRead(0);
-
+      sample = analogRead(0); 
+      
       if (CurrLoop < 5 && sample >= 678) {
         lastTip = millis(); 
         CurrLoop++; 
@@ -251,11 +263,13 @@ void MoneyListener(PTCB tcb) {
         Serial.println(peaks);
         Serial.println(sample);
 
+        // wait for 5 seconds before listening for the next tip
         MOS_Delay(tcb, 5000);
       }
 
       // no tip for 30 seconds
-      else if(CurrLoop > 0 && sample < 678 && startMillis-lastTip > 30000) {
+      else if(CurrLoop > 0 && sample < 678 && startMillis-lastTip >= 30000) {
+        Serial.println("no tip? :(");
         CurrLoop--; 
         lastTip = millis(); 
       }
