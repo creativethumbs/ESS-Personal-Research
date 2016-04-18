@@ -42,12 +42,12 @@
 
 #define REST    -1
 
-unsigned long startMillis;  
+unsigned long startMillis;
 const int sampleWindow = 50; // Sample window width in mS (50 mS = 20Hz)
 unsigned int sample;
 
 // time stamp for the last time a tip was received
-unsigned long lastTip;  
+unsigned long lastTip;
 
 int peaks = 0;
 
@@ -59,7 +59,7 @@ int LoopPosition = 0;
 int LoopNote;
 int LoopDuration;
 
-int Loops [6][42][2] = {
+int Loops [6][45][2] = {
   // initial loop (no money :( )
   {{E1_A1_C2_E2, 250}, {REST, 1750}},
 
@@ -89,22 +89,22 @@ int Loops [6][42][2] = {
     {KE1, 125}, {KA1, 125}, {KC2, 125}, {KE2, 125},
     {F1_A1_C2_DS2, 200}, {REST, 50}, {F1_A1_C2_DS2, 200}, {REST, 50}, {F1_A1_C2_DS2, 200}, {REST, 50}, {F1_A1_C2_DS2, 200}, {REST, 50}, {F1_A1_C2_DS2, 200}, {REST, 50}, {F1_A1_C2_DS2, 200}, {REST, 50},
     {KF1, 125}, {KA1, 125}, {KC2, 125}, {KDS2, 125},
-    {F1_A1_D2, 500},
-    {D1_F1_C2, 250}, {D1_F1_A1, 250}, {D1_FS1_C2, 200}, {REST, 50}, {D1_FS1_C2, 500}, {C1_E1_A1, 1250},
+    {F1_A1_D2, 450}, {REST, 50},
+    {D1_F1_C2, 200}, {REST, 50}, {D1_F1_A1, 200}, {REST, 50}, {D1_FS1_C2, 200}, {REST, 50}, {D1_FS1_C2, 500}, {C1_E1_A1, 1250},
     {A1_C2_E2_A2, 250}, {REST, 250}, {REST, 500}
   }
 };
 
 void setup() {
   /*
-  for (int i = 2; i <= 22; i++) {
+    for (int i = 2; i <= 22; i++) {
     pinMode(i, OUTPUT);
-  }
-  pinMode(24, OUTPUT);
-  pinMode(26, OUTPUT);
-  pinMode(28, OUTPUT);
-  pinMode(30, OUTPUT);*/
-  
+    }
+    pinMode(24, OUTPUT);
+    pinMode(26, OUTPUT);
+    pinMode(28, OUTPUT);
+    pinMode(30, OUTPUT);*/
+
   Serial.begin(9600);
 }
 
@@ -125,117 +125,115 @@ void PlayLoop(PTCB tcb) {
       MOS_Delay(tcb, LoopDuration);
     }
 
+    else if (LoopNote == E1_A1_C2_E2) {
+      digitalWrite(KE1, HIGH);
+      digitalWrite(KA1, HIGH);
+      digitalWrite(KC2, HIGH);
+      digitalWrite(KE2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KE1, LOW);
+      digitalWrite(KA1, LOW);
+      digitalWrite(KC2, LOW);
+      digitalWrite(KE2, LOW);
+    }
+
+    else if (LoopNote == F1_A1_C2_DS2) {
+      digitalWrite(KF1, HIGH);
+      digitalWrite(KA1, HIGH);
+      digitalWrite(KC2, HIGH);
+      digitalWrite(KDS2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KF1, LOW);
+      digitalWrite(KA1, LOW);
+      digitalWrite(KC2, LOW);
+      digitalWrite(KDS2, LOW);
+    }
+
+    else if (LoopNote == F1_A1_D2) {
+      digitalWrite(KF1, HIGH);
+      digitalWrite(KA1, HIGH);
+      digitalWrite(KD2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KF1, LOW);
+      digitalWrite(KA1, LOW);
+      digitalWrite(KD2, LOW);
+    }
+
+    else if (LoopNote == D1_F1_C2) {
+      digitalWrite(KD1, HIGH);
+      digitalWrite(KF1, HIGH);
+      digitalWrite(KC2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KD1, LOW);
+      digitalWrite(KF1, LOW);
+      digitalWrite(KC2, LOW);
+    }
+
+    else if (LoopNote == D1_F1_A1) {
+      digitalWrite(KD1, HIGH);
+      digitalWrite(KF1, HIGH);
+      digitalWrite(KA1, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KD1, LOW);
+      digitalWrite(KF1, LOW);
+      digitalWrite(KA1, LOW);
+    }
+
+    else if (LoopNote == D1_FS1_C2) {
+      digitalWrite(KD1, HIGH);
+      digitalWrite(KFS1, HIGH);
+      digitalWrite(KC2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KD1, LOW);
+      digitalWrite(KFS1, LOW);
+      digitalWrite(KC2, LOW);
+    }
+
+    else if (LoopNote == C1_E1_A1) {
+      digitalWrite(KC1, HIGH);
+      digitalWrite(KE1, HIGH);
+      digitalWrite(KA1, HIGH);
+
+      MOS_Delay(tcb, LoopDuration);
+
+      digitalWrite(KC1, LOW);
+      digitalWrite(KE1, LOW);
+      digitalWrite(KA1, LOW);
+    }
+
+    else if (LoopNote == A1_C2_E2_A2) {
+      digitalWrite(KA1, HIGH);
+      MOS_Delay(tcb, 20);
+      digitalWrite(KC2, HIGH);
+      MOS_Delay(tcb, 20);
+      digitalWrite(KE2, HIGH);
+      MOS_Delay(tcb, 20);
+      digitalWrite(KA2, HIGH);
+
+      MOS_Delay(tcb, LoopDuration - 60);
+
+      digitalWrite(KA1, LOW);
+      digitalWrite(KC2, LOW);
+      digitalWrite(KE2, LOW);
+      digitalWrite(KA2, LOW);
+    }
+
     else {
-      if (LoopNote == E1_A1_C2_E2) {
-        digitalWrite(KE1, HIGH);
-        digitalWrite(KA1, HIGH);
-        digitalWrite(KC2, HIGH);
-        digitalWrite(KE2, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KE1, LOW);
-        digitalWrite(KA1, LOW);
-        digitalWrite(KC2, LOW);
-        digitalWrite(KE2, LOW);
-      }
-
-      else if (LoopNote == F1_A1_C2_DS2) {
-        digitalWrite(KF1, HIGH);
-        digitalWrite(KA1, HIGH);
-        digitalWrite(KC2, HIGH);
-        digitalWrite(KDS2, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KF1, LOW);
-        digitalWrite(KA1, LOW);
-        digitalWrite(KC2, LOW);
-        digitalWrite(KDS2, LOW);
-      }
-
-      else if (LoopNote == F1_A1_D2) {
-        digitalWrite(KF1, HIGH);
-        digitalWrite(KA1, HIGH); 
-        digitalWrite(KD2, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KF1, LOW);
-        digitalWrite(KA1, LOW); 
-        digitalWrite(KD2, LOW);
-      }
-
-      else if (LoopNote == D1_F1_C2) {
-        digitalWrite(KD1, HIGH);
-        digitalWrite(KF1, HIGH); 
-        digitalWrite(KC2, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KD1, LOW);
-        digitalWrite(KF1, LOW); 
-        digitalWrite(KC2, LOW);
-      }
-
-      else if (LoopNote == D1_F1_A1) {
-        digitalWrite(KD1, HIGH);
-        digitalWrite(KF1, HIGH); 
-        digitalWrite(KA1, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KD1, LOW);
-        digitalWrite(KF1, LOW); 
-        digitalWrite(KA1, LOW);
-      }
-
-      else if (LoopNote == D1_FS1_C2) {
-        digitalWrite(KD1, HIGH);
-        digitalWrite(KFS1, HIGH); 
-        digitalWrite(KC2, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KD1, LOW);
-        digitalWrite(KFS1, LOW); 
-        digitalWrite(KC2, LOW);
-      }
-
-      else if (LoopNote == C1_E1_A1) {
-        digitalWrite(KC1, HIGH);
-        digitalWrite(KE1, HIGH); 
-        digitalWrite(KA1, HIGH);
-
-        MOS_Delay(tcb, LoopDuration);
-
-        digitalWrite(KC1, LOW);
-        digitalWrite(KE1, LOW); 
-        digitalWrite(KA1, LOW);
-      }
-
-      else if (LoopNote == A1_C2_E2_A2) {
-        digitalWrite(KA1, HIGH);
-        MOS_Delay(tcb, 20);
-        digitalWrite(KC2, HIGH); 
-        MOS_Delay(tcb, 20);
-        digitalWrite(KE2, HIGH);
-        MOS_Delay(tcb, 20);
-        digitalWrite(KA2, HIGH); 
-
-        MOS_Delay(tcb, LoopDuration-60);
-
-        digitalWrite(KA1, LOW);
-        digitalWrite(KC2, LOW); 
-        digitalWrite(KE2, LOW);
-        digitalWrite(KA2, LOW);
-      }
-
-      else {
-        digitalWrite(LoopNote, HIGH);
-        MOS_Delay(tcb, LoopDuration);
-        digitalWrite(LoopNote, LOW);
-      }
+      digitalWrite(LoopNote, HIGH);
+      MOS_Delay(tcb, LoopDuration);
+      digitalWrite(LoopNote, LOW);
     }
 
     LoopPosition++;
@@ -252,28 +250,49 @@ void MoneyListener(PTCB tcb) {
 
     // collect data for 50 mS
     while (millis() - startMillis < sampleWindow) {
-      sample = analogRead(0); 
-      
-      if (CurrLoop < 5 && sample >= 678) {
-        lastTip = millis(); 
-        CurrLoop++; 
-        
-        peaks++;
-        Serial.print("peak! ");
-        Serial.println(peaks);
-        Serial.println(sample);
+      sample = analogRead(0);
 
-        // wait for 5 seconds before listening for the next tip
-        MOS_Delay(tcb, 5000);
+      if (sample >= 678) {
+        lastTip = millis();
+
+        peaks++;
+        Serial.print("thanks! ");
+        Serial.println(peaks);
+
+        if (CurrLoop < 5) {
+          CurrLoop++;
+
+          // wait for 5 seconds before listening for the next tip
+          MOS_Delay(tcb, 5000);
+        }
       }
 
       // no tip for 30 seconds
-      else if(CurrLoop > 0 && sample < 678 && startMillis-lastTip >= 30000) {
+      else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
         Serial.println("no tip? :(");
-        CurrLoop--; 
-        lastTip = millis(); 
+        CurrLoop--;
+        lastTip = millis();
       }
 
+    }
+
+    switch (CurrLoop) {
+      case 0:
+      case 1:
+        LoopLength = 2;
+        break;
+      case 2:
+        LoopLength = 16;
+        break;
+      case 3:
+        LoopLength = 26;
+        break;
+      case 4:
+        LoopLength = 32;
+        break;
+      case 5:
+        LoopLength = 45;
+        break;
     }
   }
 
