@@ -16,14 +16,14 @@
 #define KA1     11
 #define KAS1    12
 #define KB1     13
-#define KC2     32
-#define KCS2    34
-#define KD2     36
-#define KDS2    38
-#define KE2     40
-#define KF2     42
-#define KFS2    44
-#define KG2     46
+#define KC2     14
+#define KCS2    15
+#define KD2     16
+#define KDS2    17
+#define KE2     18
+#define KF2     19
+#define KFS2    20
+#define KG2     21
 #define KGS2    22
 #define KA2     24
 #define KAS2    26
@@ -42,8 +42,10 @@
 
 #define REST    -1
 
+// note to self: always use unsigned long w/ millis or else time would become negative....
 unsigned long startMillis;
-const int sampleWindow = 50; // Sample window width in mS (50 mS = 20Hz)
+unsigned long noteStartTime;
+
 unsigned int sample;
 
 // time stamp for the last time a tip was received
@@ -53,23 +55,15 @@ int peaks = 0;
 
 int LoopLength = 2;
 int CurrLoop = 0;
+//int LoopLength = 45;
+//int CurrLoop = 5;
 
 int LoopPosition = 0;
 
-int LoopNote;
-int LoopDuration;
+int CurrNote;
+unsigned int NoteDuration;
 
 boolean playingNote = false;
-int noteStartTime;
-
-int Loops2[45][2] = { {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100},
-  {KE1, 125}, {KA1, 125}, {KC2, 125}, {KE2, 125},
-  {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100},
-  {KF1, 125}, {KA1, 125}, {KC2, 125}, {KDS2, 125},
-  {F1_A1_D2, 400}, {REST, 100},
-  {D1_F1_C2, 150}, {REST, 100}, {D1_F1_A1, 150}, {REST, 100}, {D1_GS1_C2, 150}, {REST, 100}, {D1_GS1_C2, 500}, {C1_E1_A1, 1250},
-  {A1_C2_E2_A2, 250}, {REST, 250}, {REST, 500}
-};
 
 int Loops [6][45][2] = {
   // initial loop (no money :( )
@@ -108,26 +102,39 @@ int Loops [6][45][2] = {
 };
 
 void setup() {
-  for (int i = 2; i <= 13; i++) {
+  for (int i = 2; i < 22; i++) {
     pinMode(i, OUTPUT);
   }
-  for (int i = 24; i <= 46; i += 2) {
-    pinMode(i, OUTPUT);
+
+  for (int j = 22; j <= 30; j += 2) {
+    pinMode(j, OUTPUT);
   }
 
   Serial.begin(9600);
 
+  /*// Testing keys
+    for (int i = 2; i < 22; i++) {
+      digitalWrite(i, HIGH);
+      delay(1000);
+      digitalWrite(i, LOW);
+    }
+
+    for (int j = 22; j <= 30; j += 2) {
+      digitalWrite(j, HIGH);
+      delay(1000);
+      digitalWrite(j, LOW);
+    }
+  */
 }
 
 
-void loop() { 
-  startMillis = millis(); // Start of sample window
+void loop() {
+    startMillis = millis(); // Start of sample window
 
-  sample = analogRead(0);
+    sample = analogRead(0);
 
-  Serial.println(sample);
-
-  if (sample >= 678 && startMillis - lastTip >= 5000) {
+    // wait 5 seconds between tips
+    if (sample >= 678 && startMillis - lastTip >= 5000) {
     lastTip = millis();
 
     peaks++;
@@ -137,41 +144,64 @@ void loop() {
     if (CurrLoop < 5) {
       CurrLoop++;
       LoopPosition = 0;
-    }
-  }
+      Serial.println(CurrLoop);
+      playingNote = false;
 
-  // no tip for 30 seconds
-  else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
+      switch (CurrLoop) {
+        case 0:
+        case 1:
+          LoopLength = 2;
+          break;
+        case 2:
+          LoopLength = 16;
+          break;
+        case 3:
+          LoopLength = 26;
+          break;
+        case 4:
+          LoopLength = 32;
+          break;
+        case 5:
+          LoopLength = 45;
+          break;
+      }
+    }
+    }
+
+    // no tip for 30 seconds causes piano to fall back to previous loop
+
+    else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
     Serial.println("no tip? :(");
     CurrLoop--;
     lastTip = millis();
     LoopPosition = 0;
-  }
 
-  switch (CurrLoop) {
-    case 0:
-    case 1:
-      LoopLength = 2;
-      break;
-    case 2:
-      LoopLength = 16;
-      break;
-    case 3:
-      LoopLength = 26;
-      break;
-    case 4:
-      LoopLength = 32;
-      break;
-    case 5:
-      LoopLength = 45;
-      break;
-  }
+    switch (CurrLoop) {
+      case 0:
+      case 1:
+        LoopLength = 2;
+        break;
+      case 2:
+        LoopLength = 16;
+        break;
+      case 3:
+        LoopLength = 26;
+        break;
+      case 4:
+        LoopLength = 32;
+        break;
+      case 5:
+        LoopLength = 45;
+        break;
+    }
+    }
 
-  if (!playingNote) {
-    LoopNote = Loops[CurrLoop][LoopPosition % LoopLength][0];
-    LoopDuration = Loops[CurrLoop][LoopPosition % LoopLength][1];
+    if (!playingNote) {
+    CurrNote = Loops[CurrLoop][LoopPosition % LoopLength][0];
+    NoteDuration = Loops[CurrLoop][LoopPosition % LoopLength][1];
 
-    if (LoopNote == E1_A1_C2_E2) {
+
+    if (CurrNote == E1_A1_C2_E2) {
       digitalWrite(KE1, HIGH);
       digitalWrite(KA1, HIGH);
       digitalWrite(KC2, HIGH);
@@ -179,7 +209,7 @@ void loop() {
 
     }
 
-    else if (LoopNote == F1_A1_C2_DS2) {
+    else if (CurrNote == F1_A1_C2_DS2) {
       digitalWrite(KF1, HIGH);
       digitalWrite(KA1, HIGH);
       digitalWrite(KC2, HIGH);
@@ -187,38 +217,38 @@ void loop() {
 
     }
 
-    else if (LoopNote == F1_A1_D2) {
+    else if (CurrNote == F1_A1_D2) {
       digitalWrite(KF1, HIGH);
       digitalWrite(KA1, HIGH);
       digitalWrite(KD2, HIGH);
 
     }
 
-    else if (LoopNote == D1_F1_C2) {
+    else if (CurrNote == D1_F1_C2) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KF1, HIGH);
       digitalWrite(KC2, HIGH);
     }
 
-    else if (LoopNote == D1_F1_A1) {
+    else if (CurrNote == D1_F1_A1) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KF1, HIGH);
       digitalWrite(KA1, HIGH);
     }
 
-    else if (LoopNote == D1_GS1_C2) {
+    else if (CurrNote == D1_GS1_C2) {
       digitalWrite(KD1, HIGH);
       digitalWrite(KFS1, HIGH);
       digitalWrite(KC2, HIGH);
     }
 
-    else if (LoopNote == C1_E1_A1) {
+    else if (CurrNote == C1_E1_A1) {
       digitalWrite(KC1, HIGH);
       digitalWrite(KE1, HIGH);
       digitalWrite(KA1, HIGH);
     }
 
-    else if (LoopNote == A1_C2_E2_A2) {
+    else if (CurrNote == A1_C2_E2_A2) {
       digitalWrite(KA1, HIGH);
       digitalWrite(KC2, HIGH);
       digitalWrite(KE2, HIGH);
@@ -226,25 +256,26 @@ void loop() {
     }
 
     else {
-      digitalWrite(LoopNote, HIGH);
+      digitalWrite(CurrNote, HIGH);
     }
 
-    noteStartTime = millis();
+    noteStartTime = startMillis;
     LoopPosition++;
     playingNote = true;
-  }
 
-  else if (playingNote && millis() - noteStartTime >= LoopDuration) {
+    }
+
+    else if (playingNote && startMillis - noteStartTime >= NoteDuration) {
     playingNote = false;
 
-    for (int i = 2; i <= 13; i++) {
+    for (int i = 2; i < 22; i++) {
       digitalWrite(i, LOW);
     }
-    for (int i = 24; i <= 46; i += 2) {
+    for (int i = 22; i <= 30; i += 2) {
       digitalWrite(i, LOW);
     }
-  }
-
+    }
+  
 }
 
 
