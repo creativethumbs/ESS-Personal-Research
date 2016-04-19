@@ -1,5 +1,3 @@
-// !! Requires Arduino-MOS scheduler library
-//#include <MOS.h>
 #include <Wire.h> // Enable this line if using Arduino Uno, Mega, etc.
 #include <elapsedMillis.h>
 
@@ -112,7 +110,8 @@ void setup() {
 
   Serial.begin(9600);
 
-  /*// Testing keys
+  // Testing keys
+  /*
     for (int i = 2; i < 22; i++) {
       digitalWrite(i, HIGH);
       delay(1000);
@@ -129,12 +128,13 @@ void setup() {
 
 
 void loop() {
-    startMillis = millis(); // Start of sample window
+  
+  startMillis = millis(); // Start of sample window
 
-    sample = analogRead(0);
+  sample = analogRead(0);
 
-    // wait 5 seconds between tips
-    if (sample >= 678 && startMillis - lastTip >= 5000) {
+  // wait 5 seconds between tips
+  if (sample >= 678 && startMillis - lastTip >= 5000) {
     lastTip = millis();
 
     peaks++;
@@ -166,11 +166,11 @@ void loop() {
           break;
       }
     }
-    }
+  }
 
-    // no tip for 30 seconds causes piano to fall back to previous loop
+  // no tip for 30 seconds causes piano to fall back to previous loop
 
-    else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
+  else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
     Serial.println("no tip? :(");
     CurrLoop--;
     lastTip = millis();
@@ -194,9 +194,9 @@ void loop() {
         LoopLength = 45;
         break;
     }
-    }
+  }
 
-    if (!playingNote) {
+  if (!playingNote) {
     CurrNote = Loops[CurrLoop][LoopPosition % LoopLength][0];
     NoteDuration = Loops[CurrLoop][LoopPosition % LoopLength][1];
 
@@ -263,9 +263,9 @@ void loop() {
     LoopPosition++;
     playingNote = true;
 
-    }
+  }
 
-    else if (playingNote && startMillis - noteStartTime >= NoteDuration) {
+  else if (playingNote && startMillis - noteStartTime >= NoteDuration) {
     playingNote = false;
 
     for (int i = 2; i < 22; i++) {
@@ -274,8 +274,8 @@ void loop() {
     for (int i = 22; i <= 30; i += 2) {
       digitalWrite(i, LOW);
     }
-    }
-  
+  }
+
 }
 
 
