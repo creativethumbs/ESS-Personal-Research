@@ -49,7 +49,7 @@ unsigned int sample;
 // time stamp for the last time a tip was received
 unsigned long lastTip = -5000;
 
-int peaks = 0;
+int numTips = 0;
 
 int LoopLength = 2;
 int CurrLoop = 0;
@@ -63,12 +63,12 @@ unsigned int NoteDuration;
 
 boolean playingNote = false;
 
-int Loops [6][45][2] = {
+int Loops [5][45][2] = {
   // initial loop (no money :( )
   {{E1_A1_C2_E2, 250}, {REST, 1750}},
 
   // second loop (tiny bit of money)
-  {{E1_A1_C2_E2, 150}, {REST, 100}},
+  {{E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 250}, {REST, 750}},
 
   // third loop (little bit more money)
   { {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100},
@@ -79,13 +79,6 @@ int Loops [6][45][2] = {
   { {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100},
     {KE1, 125}, {KA1, 125}, {KC2, 125}, {KE2, 125},
     {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 750}
-  },
-
-  // fifth loop (little bit more money)
-  { {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100}, {E1_A1_C2_E2, 150}, {REST, 100},
-    {KE1, 125}, {KA1, 125}, {KC2, 125}, {KE2, 125},
-    {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100}, {F1_A1_C2_DS2, 150}, {REST, 100},
-    {KF1, 125}, {KA1, 125}, {KC2, 125}, {KDS2, 125}
   },
 
   // full loop (so much money)
@@ -128,41 +121,49 @@ void setup() {
 
 
 void loop() {
-  
+
   startMillis = millis(); // Start of sample window
 
   sample = analogRead(0);
 
-  // wait 5 seconds between tips
-  if (sample >= 678 && startMillis - lastTip >= 5000) {
+  // wait 2 seconds between tips
+  if (sample >= 678 && startMillis - lastTip >= 2000) {
     lastTip = millis();
 
-    peaks++;
-    Serial.print("thanks! ");
-    Serial.println(peaks);
-
     if (CurrLoop < 5) {
-      CurrLoop++;
-      LoopPosition = 0;
-      Serial.println(CurrLoop);
-      playingNote = false;
+      numTips++;
+      Serial.print("thanks! ");
+      Serial.println(numTips);
+      Serial.println(sample);
 
-      switch (CurrLoop) {
-        case 0:
+      switch (numTips) {
         case 1:
-          LoopLength = 2;
-          break;
-        case 2:
-          LoopLength = 16;
+          CurrLoop = 1;
+          LoopLength = 10;
+          LoopPosition = 0;
+          liftKeys();
+
           break;
         case 3:
-          LoopLength = 26;
+          CurrLoop = 2;
+          LoopLength = 16;
+          LoopPosition = 0;
+          liftKeys();
+
           break;
-        case 4:
+        case 6:
+          CurrLoop = 3;
           LoopLength = 32;
+          LoopPosition = 0;
+          liftKeys();
+
           break;
-        case 5:
+        case 10:
+          CurrLoop = 4;
           LoopLength = 45;
+          LoopPosition = 0;
+          liftKeys();
+
           break;
       }
     }
@@ -170,28 +171,29 @@ void loop() {
 
   // no tip for 30 seconds causes piano to fall back to previous loop
 
-  else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 30000) {
+  else if (CurrLoop > 0 && sample < 678 && startMillis - lastTip >= 15000) {
     Serial.println("no tip? :(");
     CurrLoop--;
+
     lastTip = millis();
     LoopPosition = 0;
 
     switch (CurrLoop) {
       case 0:
-      case 1:
         LoopLength = 2;
+        numTips = 0;
+        break;
+      case 1:
+        LoopLength = 10;
+        numTips = 1;
         break;
       case 2:
         LoopLength = 16;
+        numTips = 3;
         break;
       case 3:
-        LoopLength = 26;
-        break;
-      case 4:
         LoopLength = 32;
-        break;
-      case 5:
-        LoopLength = 45;
+        numTips = 6;
         break;
     }
   }
@@ -200,8 +202,8 @@ void loop() {
     CurrNote = Loops[CurrLoop][LoopPosition % LoopLength][0];
     NoteDuration = Loops[CurrLoop][LoopPosition % LoopLength][1];
 
-
     if (CurrNote == E1_A1_C2_E2) {
+      Serial.println(LoopPosition % LoopLength);
       digitalWrite(KE1, HIGH);
       digitalWrite(KA1, HIGH);
       digitalWrite(KC2, HIGH);
@@ -266,16 +268,21 @@ void loop() {
   }
 
   else if (playingNote && startMillis - noteStartTime >= NoteDuration) {
-    playingNote = false;
+    liftKeys();
 
-    for (int i = 2; i < 22; i++) {
-      digitalWrite(i, LOW);
-    }
-    for (int i = 22; i <= 30; i += 2) {
-      digitalWrite(i, LOW);
-    }
   }
 
+}
+
+void liftKeys() {
+  playingNote = false;
+
+  for (int i = 2; i < 22; i++) {
+    digitalWrite(i, LOW);
+  }
+  for (int i = 22; i <= 30; i += 2) {
+    digitalWrite(i, LOW);
+  }
 }
 
 
